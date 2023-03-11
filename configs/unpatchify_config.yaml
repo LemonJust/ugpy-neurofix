@@ -1,0 +1,9 @@
+input:
+    folder: D:/Data/2023-02-21 3Channel HuCD staining/testtest_padded_(64, 1024, 1024)_constant
+    tag: test
+output:
+    folder: D:/Data/2023-02-21 3Channel HuCD staining
+unpatchify:
+    image_size: !!python/tuple
+        [ 64,1024,1024 ]
+

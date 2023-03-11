@@ -84,22 +84,35 @@ def load_patches(patches_folder: Union[str, Path],
     """
     # get all tiff files in the folder
     files = [f for f in os.listdir(patches_folder) if f.endswith('.tif')]
+    if len(files) == 0:
+        raise FileNotFoundError(f'No tiff files found in {patches_folder}')
 
     # get the original shape of the patches
-    patch_shape = [
-        int(s) for s in
-        files[0].split('_patch_shape_(')[1].split(')')[0].split(',')
-    ]
+    try:
+        patch_shape = [
+            int(s) for s in
+            files[0].split('_patch_shape_(')[1].split(')')[0].split(',')
+        ]
+    except Exception:
+        raise ValueError(f'Problem when processing {files[0]}. '
+                         f'Check that the file name is in the correct format '
+                         f'and has patch shape.')
 
     # load the patches
+    patches = None
     for i, f in enumerate(files):
         patch = tif.imread(Path(patches_folder, f))
         if i == 0:
             one_patch_shape = patch.shape
             patches = np.zeros((*patch_shape, *one_patch_shape),
                                dtype=patch.dtype)
-        # get the indices from the end of the file name and place the patch
-        ii, jj, kk = [int(s) for s in f.split('.tif')[0].split('_')[-3:]]
+        try:
+            # get the indices from the end of the file name and place the patch
+            ii, jj, kk = [int(s) for s in f.split('.tif')[0].split('_')[-3:]]
+        except Exception:
+            raise ValueError(f'Problem when processing {f}. '
+                             f'Check that the file name is in the correct '
+                             f'format and has patch indices.')
         patches[ii, jj, kk] = patch
     return patches
 
@@ -125,6 +138,37 @@ def load_and_unpatchify(patches_folder: Union[str, Path],
     return unpatchify(patches, image_size)
 
 
+def patchify_from_config(img: npt.NDArray,
+                         output_folder, config, verbose=True):
+    """
+    Patchifies an image and saves the patches to the output folder using
+    parameters from the config file.
+    """
+    patch_size = config["patch_size"]
+    step = config["step"]
+    if "tag" in config:
+        patch_tag = config["tag"]
+    else:
+        patch_tag = "patch"
+    if verbose:
+        print(f"patch size {patch_size}, step {step}")
+        print(f"Saving patches to {output_folder} with tag {patch_tag}")
+    patchify_and_save(img, patch_size, output_folder, patch_tag, step=step)
+
+
+def unpatchify_from_config(input_folder, config, verbose=True):
+    """
+    Loads patches from the input folder using parameters from the config file
+    and unpatchifies them.
+    """
+    image_size = config["image_size"]
+    if verbose:
+        print(f'Loading patches from {input_folder} '
+              f'; unpatchifying into {image_size} image size')
+    img = load_and_unpatchify(input_folder, image_size=image_size)
+    return img
+
+
 if __name__ == '__main__':
     # Example:
     # patchify a file and save the patches
@@ -136,5 +180,3 @@ if __name__ == '__main__':
     # (only patches originally with zero overlap
     # can be unpatchified with load_and_unpatchify)
     img = load_and_unpatchify('path/to/save/folder')
-
-

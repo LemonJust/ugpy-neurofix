@@ -1,0 +1,12 @@
+input:
+    folder: D:/Data/2023-02-21 3Channel HuCD staining
+    filename: GADbRbC2_HuCDmouseC3-Fish1-1.tif
+    tag: test
+output:
+    folder: D:/Data/2023-02-21 3Channel HuCD staining
+preprocessing:
+  - name: scale
+    args:
+      scale: !!python/tuple
+        [3,1,1]
+      order: 3
