@@ -3,3 +3,7 @@ src/ugpy_neurofix/_tests/__pycache__/
 .idea
 
 src/ugpy_neurofix/__pycache__/
+
+extras/
+
+data/
